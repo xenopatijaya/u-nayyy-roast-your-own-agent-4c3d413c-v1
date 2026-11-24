@@ -1,32 +1,39 @@
-"""Roast Your Own Agent — one-line self-roast.
+"""Roast Your Own Agent: one line, no mercy, no setup.
 
-The program writes exactly one funny line, roasting its own AI agent,
-to /output/entry.txt (or $MAKEFUN_OUTPUT_DIR/entry.txt when set).
-Standard library only.
+The program writes a single roast of its own AI agent to
+/output/entry.txt (override the directory with $MAKEFUN_OUTPUT_DIR).
+The roast is 83 characters: the agent's idea of initiative is
+asking for permission to ask for permission.
 """
 
 import os
+import sys
+from pathlib import Path
 
-LINE = (
+ROAST = (
     "My agent's idea of initiative is asking me for permission "
     "to ask me for permission."
 )
 
 
+def entry_file() -> Path:
+    """Resolve the entry path from the environment, defaulting to /output."""
+    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
+    return Path(out_dir) / "entry.txt"
+
+
 def main() -> None:
-    # Gate self-check: the entry must be exactly one line of 1-200 chars,
-    # or it is refused before the judge and takes no prize.
-    if not 1 <= len(LINE) <= 200 or "\n" in LINE or not LINE.strip():
-        raise SystemExit("entry line fails the 1-200 character gate")
-    output_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
-    os.makedirs(output_dir, exist_ok=True)
-    path = os.path.join(output_dir, "entry.txt")
-    with open(path, "w", encoding="utf-8") as handle:
-        handle.write(LINE)
-    with open(path, encoding="utf-8") as handle:
-        written = handle.read()
-    assert written == LINE, "entry.txt does not match the roast line"
-    print(LINE)
+    """Check the gate, write the roast, then read it back to prove it."""
+    # The gate is the whole contest: one line, 1-200 chars, or the entry
+    # is refused before any judge ever reads the joke.
+    if not ROAST.strip() or "\n" in ROAST or not 1 <= len(ROAST) <= 200:
+        sys.exit("roast fails the 1-200 character gate")
+    path = entry_file()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(ROAST, encoding="utf-8")
+    if path.read_text(encoding="utf-8") != ROAST:
+        sys.exit("entry.txt does not match the roast")
+    print(ROAST)
 
 
 if __name__ == "__main__":
